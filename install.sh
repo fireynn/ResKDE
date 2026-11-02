@@ -14,14 +14,14 @@ if ! command -v python3 &> /dev/null; then
 fi
 
 echo "To get a Telegram bot token, message @BotFather on Telegram (https://t.me/BotFather) and create a new bot."
-read -p "Enter your Telegram Bot Token: " BOT_TOKEN
+read -p "Enter your Telegram Bot Token: " BOT_TOKEN < /dev/tty
 
 if [ -z "$BOT_TOKEN" ]; then
     echo "Error: Token cannot be empty." >&2
     exit 1
 fi
 
-read -p "Enter proxy URL if needed (e.g., socks5://127.0.0.1:2080 or leave blank): " PROXY_URL
+read -p "Enter proxy URL if needed (e.g., socks5://127.0.0.1:2080 or leave blank): " PROXY_URL < /dev/tty
 
 mkdir -p "$INSTALL_DIR"
 
@@ -53,7 +53,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=${INSTALL_DIR}
-ExecStart=${INSTALL_DIR}/venv/bin/python ${INSTALL_DIR}/main.py
+ExecStart=${INSTALL_DIR}/venv/bin/python ${INSTALL_DIR}/aiogram_run.py
 Restart=always
 RestartSec=5
 EnvironmentFile=${INSTALL_DIR}/.env

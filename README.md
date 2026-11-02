@@ -18,11 +18,14 @@
 ### Installation
 
 Run the following command in your terminal to install the bot:
-
+For bash
 ```bash
-curl -sSL https://raw.githubusercontent.com/fireynn/ResKDE/main/install.sh | bash
+bash <(curl -sSL https://raw.githubusercontent.com/fireynn/ResKDE/main/install.sh)
 ```
-
+For fish
+```bash
+bash (curl -sSL https://raw.githubusercontent.com/fireynn/ResKDE/main/install.sh | psub)
+```
 ### Management
 
 You can manage the bot service using standard systemd user commands:
@@ -47,8 +50,13 @@ You can manage the bot service using standard systemd user commands:
 
 Выполните следующую команду в терминале для установки бота:
 
+Для bash
 ```bash
-curl -sSL https://raw.githubusercontent.com/fireynn/ResKDE/main/install.sh | bash
+bash <(curl -sSL https://raw.githubusercontent.com/fireynn/ResKDE/main/install.sh)
+```
+Для fish
+```bash
+bash (curl -sSL https://raw.githubusercontent.com/fireynn/ResKDE/main/install.sh | psub)
 ```
 
 ### Управление

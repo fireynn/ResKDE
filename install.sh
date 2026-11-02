@@ -32,5 +32,5 @@ EnvironmentFile=${INSTALL_DIR}/.env[Install]
 WantedBy=default.target
 EOFsystemctl --user daemon-reload
 systemctl --user enable "${SERVICE_NAME}.service"
-systemctl --user restart "${SERVICE_NAME}.service"echo "=== Installation completed successfully! =="
+systemctl --user restart "${SERVICE_NAME}.service"echo "=== Installation completed successfully! ==="
 echo "Manage the bot using: systemctl --user status ${SERVICE_NAME}"

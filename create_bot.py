@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 PROXY_URL = config("PROXY_URL", default=None)
 if PROXY_URL:
     session = AiohttpSession(proxy=PROXY_URL)
-    bot = aiogram.Bot(token=config("TOKEN"), session=session)
+    bot = aiogram.Bot(token=config("BOT_TOKEN"), session=session)
 else:
-    bot = aiogram.Bot(token=config("TOKEN"))
+    bot = aiogram.Bot(token=config("BOT_TOKEN"))
 dp = aiogram.Dispatcher(storage=MemoryStorage())

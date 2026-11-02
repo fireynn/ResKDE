@@ -20,9 +20,8 @@
 Run the following command in your terminal to install the bot:
 
 ```bash
-bash <(curl -sL https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME/main/install.sh)
+bash <(curl -sL https://raw.githubusercontent.com/fireynn/ResKDE/main/install.sh)
 ```
-*(Replace `YOUR_GITHUB_USERNAME` and `YOUR_REPO_NAME` with your actual GitHub details).*
 
 ### Management
 
@@ -49,9 +48,8 @@ You can manage the bot service using standard systemd user commands:
 Выполните следующую команду в терминале для установки бота:
 
 ```bash
-bash <(curl -sL https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME/main/install.sh)
+bash <(curl -sL https://raw.githubusercontent.com/fireynn/ResKDE/main/install.sh)
 ```
-*(Замените `YOUR_GITHUB_USERNAME` и `YOUR_REPO_NAME` на ваши реальные данные GitHub).*
 
 ### Управление
 

@@ -22,7 +22,7 @@ if [ -z "$BOT_TOKEN" ]; then
 fi
 
 read -r -p "Enter proxy URL if needed (e.g., socks5://127.0.0.1:2080 or leave blank): " PROXY_URL < /dev/tty
-
+read -r -p "Enter the Telegram user ID (if left blank, it will default to the first person who messaged the bot): " IDUSER < /dev/tty
 mkdir -p "$INSTALL_DIR"
 
 echo "Downloading bot files..."
@@ -34,6 +34,9 @@ echo "Creating .env configuration..."
 echo "BOT_TOKEN=$BOT_TOKEN" > .env
 if [ -n "$PROXY_URL" ]; then
     echo "PROXY_URL=$PROXY_URL" >> .env
+fi
+if [ -n "$IDUSER" ]; then
+    echo "IDUSER=$IDUSER" >> .env
 fi
 
 echo "Setting up Python virtual environment..."

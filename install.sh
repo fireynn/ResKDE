@@ -1,3 +1,4 @@
+
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -36,9 +37,7 @@ echo "BOT_TOKEN=$BOT_TOKEN" > .env
 if [ -n "${PROXY_URL:-}" ]; then
     echo "PROXY_URL=$PROXY_URL" >> .env
 fi
-if [ -n "${IDUSER:-}" ]; then
-    echo "IDUSER=$IDUSER" >> .env
-fi
+echo "IDUSER=${IDUSER:-}" >> .env
 
 echo "Setting up Python virtual environment..."
 rm -rf "$INSTALL_DIR/venv"
@@ -97,6 +96,8 @@ cat << 'EOF' > "$BIN_DIR/reskde"
 
 SERVICE="reskde"
 INSTALL_DIR="$HOME/.local/share/resKDE"
+BIN_FILE="$HOME/.local/bin/reskde"
+SERVICE_FILE="$HOME/.config/systemd/user/${SERVICE}.service"
 ENV_FILE="$INSTALL_DIR/.env"
 
 show_help() {
@@ -108,7 +109,8 @@ show_help() {
     echo "  restart              Restart the bot service"
     echo "  status               Check bot service status"
     echo "  logs                 Stream live bot logs (journalctl)"
-    echo "  set <KEY> <VALUE>    Set or update any environment variable in .env (e.g., reskde set IDUSER 1894123)"
+    echo "  uninstall            Completely remove the bot, service, and CLI tool"
+    echo "  set <KEY> <VALUE>    Set or update any environment variable in .env"
     echo "  get <KEY>            Get the value of an environment variable"
     echo "  show                 Show all current variables in .env"
     echo "  help                 Display this help message"
@@ -140,6 +142,26 @@ case "$COMMAND" in
         ;;
     logs)
         journalctl --user -u "$SERVICE" -f
+        ;;
+    uninstall)
+        echo "=== Uninstalling resKDE Bot ==="
+
+        echo "Stopping and disabling systemd service..."
+        systemctl --user stop "$SERVICE" 2>/dev/null || true
+        systemctl --user disable "$SERVICE" 2>/dev/null || true
+
+        echo "Removing systemd service file..."
+        rm -f "$SERVICE_FILE"
+        systemctl --user daemon-reload
+
+        echo "Removing installation directory ($INSTALL_DIR)..."
+        rm -rf "$INSTALL_DIR"
+
+        echo "Removing CLI binary..."
+        rm -f "$BIN_FILE"
+
+        echo "=== Uninstallation completed successfully! ==="
+        exit 0
         ;;
     set)
         KEY="$1"

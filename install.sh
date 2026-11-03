@@ -22,8 +22,8 @@ if [ -z "$BOT_TOKEN" ]; then
     exit 1
 fi
 
-read -r -p "Enter proxy URL if needed (e.g., socks5://127.0.0.1:2080 or leave blank): " PROXY_URL < /dev/tty
-read -r -p "Enter the Telegram user ID (if left blank, enter the /id command to save id to .env): " IDUSER < /dev/tty
+read -r -p "Enter proxy URL if needed (e.g., socks5://127.0.0.1:2080 or leave blank): " PROXY_URL < /dev/tty || true
+read -r -p "Enter the Telegram user ID (if left blank, enter the /id command to save id to .env): " IDUSER < /dev/tty || true
 mkdir -p "$INSTALL_DIR"
 
 echo "Downloading bot files..."
@@ -33,10 +33,10 @@ cd "$INSTALL_DIR"
 
 echo "Creating .env configuration..."
 echo "BOT_TOKEN=$BOT_TOKEN" > .env
-if [ -n "$PROXY_URL" ]; then
+if [ -n "${PROXY_URL:-}" ]; then
     echo "PROXY_URL=$PROXY_URL" >> .env
 fi
-if [ -n "$IDUSER" ]; then
+if [ -n "${IDUSER:-}" ]; then
     echo "IDUSER=$IDUSER" >> .env
 fi
 

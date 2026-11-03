@@ -63,7 +63,7 @@ else
     exit 1
 fi
 
-echo "Creating systemd user service..."
+echo "Creating systemd user service with memory limits..."
 mkdir -p "$HOME/.config/systemd/user"
 
 cat << EOF > "$HOME/.config/systemd/user/${SERVICE_NAME}.service"
@@ -78,6 +78,8 @@ ExecStart=${INSTALL_DIR}/venv/bin/python ${INSTALL_DIR}/aiogram_run.py
 Restart=always
 RestartSec=5
 EnvironmentFile=${INSTALL_DIR}/.env
+MemoryHigh=60M
+MemoryMax=80M
 
 [Install]
 WantedBy=default.target

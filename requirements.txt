@@ -1,3 +1,4 @@
 aiogram
 python-decouple
 aiohttp-socks
+dotenv

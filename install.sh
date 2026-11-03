@@ -8,64 +8,93 @@ INSTALL_DIR="$HOME/.local/share/resKDE"
 BIN_DIR="$HOME/.local/bin"
 SERVICE_NAME="reskde"
 
-echo "=== resKDE Bot Installer ==="
+echo "=== resKDE Bot Installer / Updater ==="
 
 if ! command -v python3 &> /dev/null; then
     echo "Error: python3 is not installed." >&2
     exit 1
 fi
 
-echo "To get a Telegram bot token, message @BotFather on Telegram (https://t.me/BotFather) and create a new bot."
-read -r -p "Enter your Telegram Bot Token: " BOT_TOKEN < /dev/tty
+# Проверяем, существует ли уже установленный бот
+if [ -d "$INSTALL_DIR" ]; then
+    echo "Existing installation found at $INSTALL_DIR. Updating files..."
 
-if [ -z "$BOT_TOKEN" ]; then
-    echo "Error: Token cannot be empty." >&2
-    exit 1
-fi
+    # Сохраняем .env во временный файл перед обновлением
+    if [ -f "$INSTALL_DIR/.env" ]; then
+        cp "$INSTALL_DIR/.env" /tmp/reskde_env_backup
+    fi
 
-read -r -p "Enter proxy URL if needed (e.g., socks5://127.0.0.1:2080 or leave blank): " PROXY_URL < /dev/tty || true
-read -r -p "Enter the Telegram user ID (if left blank, enter the /id command to save id to .env): " IDUSER < /dev/tty || true
-mkdir -p "$INSTALL_DIR"
+    # Скачиваем свежую версию архива во временную папку
+    TEMP_DIR=$(mktemp -d)
+    curl -sL "https://github.com/${REPO_USER}/${REPO_NAME}/archive/refs/heads/main.tar.gz" | tar xz --strip-components=1 -C "$TEMP_DIR"
 
-echo "Downloading bot files..."
-curl -sL "https://github.com/${REPO_USER}/${REPO_NAME}/archive/refs/heads/main.tar.gz" | tar xz --strip-components=1 -C "$INSTALL_DIR"
+    # Переносим новые файлы, не затирая папку venv и .env
+    rsync -av --exclude='venv' --exclude='.env' "$TEMP_DIR/" "$INSTALL_DIR/"
+    rm -rf "$TEMP_DIR"
 
-cd "$INSTALL_DIR"
+    # Восстанавливаем .env на случай, если он был перезаписан
+    if [ -f /tmp/reskde_env_backup ]; then
+        mv /tmp/reskde_env_backup "$INSTALL_DIR/.env"
+    fi
 
-echo "Creating .env configuration..."
-echo "BOT_TOKEN=$BOT_TOKEN" > .env
-if [ -n "${PROXY_URL:-}" ]; then
-    echo "PROXY_URL=$PROXY_URL" >> .env
-fi
-echo "IDUSER=${IDUSER:-}" >> .env
+    cd "$INSTALL_DIR"
 
-echo "Setting up Python virtual environment..."
-rm -rf "$INSTALL_DIR/venv"
-python3 -m venv "$INSTALL_DIR/venv"
+    # Обновляем зависимости, если изменился requirements.txt
+    VENV_PYTHON="$INSTALL_DIR/venv/bin/python"
+    if [ -f "$INSTALL_DIR/requirements.txt" ]; then
+        echo "Updating dependencies..."
+        "$VENV_PYTHON" -m pip install --upgrade pip
+        "$VENV_PYTHON" -m pip install --no-cache-dir -r "$INSTALL_DIR/requirements.txt"
+    fi
 
-VENV_PYTHON="$INSTALL_DIR/venv/bin/python"
-
-echo "Upgrading pip..."
-"$VENV_PYTHON" -m pip install --upgrade pip
-
-REQ_FILE="$INSTALL_DIR/requirements.txt"
-
-if [ -f "$REQ_FILE" ]; then
-    echo "Found requirements.txt. Contents:"
-    cat "$REQ_FILE"
-    echo "-----------------------------------"
-    echo "Installing dependencies..."
-    "$VENV_PYTHON" -m pip install --no-cache-dir -r "$REQ_FILE"
 else
-    echo "Error: requirements.txt was not found in $INSTALL_DIR!" >&2
-    ls -la "$INSTALL_DIR" >&2
-    exit 1
-fi
+    # Первичная установка (если папки нет)
+    echo "To get a Telegram bot token, message @BotFather on Telegram (https://t.me/BotFather) and create a new bot."
+    read -r -p "Enter your Telegram Bot Token: " BOT_TOKEN < /dev/tty
 
-echo "Creating systemd user service with memory limits..."
-mkdir -p "$HOME/.config/systemd/user"
+    if [ -z "$BOT_TOKEN" ]; then
+        echo "Error: Token cannot be empty." >&2
+        exit 1
+    fi
 
-cat << EOF > "$HOME/.config/systemd/user/${SERVICE_NAME}.service"
+    read -r -p "Enter proxy URL if needed (e.g., socks5://127.0.0.1:2080 or leave blank): " PROXY_URL < /dev/tty || true
+    read -r -p "Enter the Telegram user ID (if left blank, enter the /id command to save id to .env): " IDUSER < /dev/tty || true
+    mkdir -p "$INSTALL_DIR"
+
+    echo "Downloading bot files..."
+    curl -sL "https://github.com/${REPO_USER}/${REPO_NAME}/archive/refs/heads/main.tar.gz" | tar xz --strip-components=1 -C "$INSTALL_DIR"
+
+    cd "$INSTALL_DIR"
+
+    echo "Creating .env configuration..."
+    echo "BOT_TOKEN=$BOT_TOKEN" > .env
+    if [ -n "${PROXY_URL:-}" ]; then
+        echo "PROXY_URL=$PROXY_URL" >> .env
+    fi
+    echo "IDUSER=${IDUSER:-}" >> .env
+
+    echo "Setting up Python virtual environment..."
+    python3 -m venv "$INSTALL_DIR/venv"
+
+    VENV_PYTHON="$INSTALL_DIR/venv/bin/python"
+
+    echo "Upgrading pip..."
+    "$VENV_PYTHON" -m pip install --upgrade pip
+
+    REQ_FILE="$INSTALL_DIR/requirements.txt"
+
+    if [ -f "$REQ_FILE" ]; then
+        echo "Installing dependencies..."
+        "$VENV_PYTHON" -m pip install --no-cache-dir -r "$REQ_FILE"
+    else
+        echo "Error: requirements.txt was not found in $INSTALL_DIR!" >&2
+        exit 1
+    fi
+
+    echo "Creating systemd user service with memory limits..."
+    mkdir -p "$HOME/.config/systemd/user"
+
+    cat << EOF > "$HOME/.config/systemd/user/${SERVICE_NAME}.service"
 [Unit]
 Description=resKDE Telegram Bot Service
 After=network.target
@@ -84,11 +113,11 @@ MemoryMax=80M
 WantedBy=default.target
 EOF
 
-systemctl --user daemon-reload
-systemctl --user enable "${SERVICE_NAME}.service"
-systemctl --user restart "${SERVICE_NAME}.service"
+    systemctl --user daemon-reload
+    systemctl --user enable "${SERVICE_NAME}.service"
+fi
 
-echo "Installing CLI manager (reskde binary)..."
+echo "Updating CLI manager (reskde binary)..."
 mkdir -p "$BIN_DIR"
 
 cat << 'EOF' > "$BIN_DIR/reskde"
@@ -218,5 +247,9 @@ EOF
 
 chmod +x "$BIN_DIR/reskde"
 
-echo "=== Installation completed successfully! ==="
-echo "You can now manage the bot using the 'reskde' command anywhere (e.g., reskde status)"
+# Перезапуск службы для применения обновленного кода
+systemctl --user daemon-reload
+systemctl --user restart "${SERVICE_NAME}.service"
+
+echo "=== Operation completed successfully! ==="
+echo "The bot has been updated and restarted. Use 'reskde status' to check."

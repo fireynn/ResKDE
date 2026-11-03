@@ -252,4 +252,4 @@ systemctl --user daemon-reload
 systemctl --user restart "${SERVICE_NAME}.service"
 
 echo "=== Operation completed successfully! ==="
-echo "The bot has been updated and restarted. Use 'reskde status' to check."
+echo "The bot has been updated and restarted. Use 'reskde status' to check.."
